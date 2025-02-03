@@ -1,7 +1,24 @@
 #!/bin/bash -e
 
+MAX_DB_WAIT=300
+
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
+  # Make sure the database is up before continuing
+  START=$(date +%s)
+  while [ $(($(date +%s) - $START)) -lt $MAX_DB_WAIT ]; do
+    pg_isready -h $DB_HOST
+    if [ $? -ne 2 ]; then
+      # exit status 2 means no response
+      break
+    fi
+    sleep 5
+  done
+  if [ $(($(date +%s) - $START)) -ge $MAX_DB_WAIT ]; then
+    echo "Database is not ready after $MAX_DB_WAIT seconds. Exiting."
+    exit 1
+  fi
+  # If we got this far, create or migrate the database
   ./bin/rails db:prepare
 fi
 
