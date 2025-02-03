@@ -12,6 +12,7 @@ if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
       # exit status 2 means no response
       break
     fi
+    echo "Waiting for database to be ready..."
     sleep 5
   done
   if [ $(($(date +%s) - $START)) -ge $MAX_DB_WAIT ]; then
